@@ -63,19 +63,20 @@ wsubRv = max(map(len, sub_R.d.values()))
 wsubrk = max(map(len, sub_r.d.keys()))
 wsubrv = max(map(len, sub_r.d.values()))
 lf = '\n'
-
+subRcols = 50 // (wsubRk + wsubRv + 3)
+subrcols = 50 // (wsubrk + wsubrv + 3)
 print(f"""Welcome to OE Edit! This is an experimental text editor that's meant to streamline the writing of Old English texts.
 
-Shortcuts:
+Shortcuts
   Ctrl+C          Copy selected text
-  Ctrl+X          Cut selected text
-  Ctrl+V          Paste selected text
+  Ctrl+X          Copy and delete selected text
+  Ctrl+V          Paste copied text
   Ctrl+A          Select all text
-  Ctrl+Z          Undo (file switch clears history!!)
+  Ctrl+Z          Undo (file switch clears history)
 
-  Home            Beginning of line
   Ctrl+Left       Previous non-whitespace chunk begin
   Ctrl+Right      Next non-whitespace chunk begin
+  Home            Beginning of line
   Ctrl+Home       Beginning of file
   End             End of line
   Ctrl+End        End of file
@@ -92,12 +93,15 @@ Shortcuts:
   Ctrl+Shift+T    Transcribe to runic script
 
 Latinized rendition character conversion rules
-{lf.join(f'  {" ".join(f"{k:>{wsubRk}}->{v:<{wsubRv}}" for k,v in xs if k)}' for xs in grouper(filter(lambda x:x[0] and x[1],sub_R.d.items()),3,("","")))}
+{lf.join(f'  {" ".join(f"{k:>{wsubRk}}->{v:<{wsubRv}}" for k,v in xs if k)}' for xs in grouper(filter(lambda x:x[0] and x[1],sub_R.d.items()),subRcols,("","")))}
 
 Runic rendition character conversion rules
-{lf.join(f'  {" ".join(f"{k:>{wsubrk}}->{v:<{wsubrv}}" for k,v in xs if k)}' for xs in grouper(filter(lambda x:x[0] and x[1],sub_r.d.items()),3,("","")))}
+{lf.join(f'  {" ".join(f"{k:>{wsubrk}}->{v:<{wsubrv}}" for k,v in xs if k)}' for xs in grouper(filter(lambda x:x[0] and x[1],sub_r.d.items()),subrcols,("","")))}
 
-  One can use the notation $r<a:b> to change the output based on whether runic (a) or latinized (b) output is being generated.""")
+Recognized markup
+  One can use the notation $r<a:b> to change the output based on whether runic (a) or latinized (b) output is being generated.
+
+  The notation *expression* is on gdoc-copy turned to red and the asterisks are removed.""")
 
 filehash = hash(tuple(ses))
 
