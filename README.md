@@ -1,10 +1,17 @@
 ﻿# OE Edit
 
 ![Screenshot](img/demo.png)
+Demo text from [here](https://anglish.miraheze.org/wiki/Younger_Futhorc).
+
+Wordbook fetched at runtime from [here](https://docs.google.com/spreadsheets/d/1y8_11RDvuCRyUK_MXj5K7ZjccgCUDapsPDI5PjaEkMw).
+
+Install from command-line: `python -m pip install git+https://github.com/kovadarra/oe-edit.git`
+Run from command-line: `python -m oe_edit` (notice underscore)
 
 Console output when running the thing:
 ```
-Welcome to OE Edit! This is an experimental text editor that's meant to streamline the writing of Old English texts. It incorporates an Anglish wordbook fetched from [here](https://docs.google.com/spreadsheets/d/1y8_11RDvuCRyUK_MXj5K7ZjccgCUDapsPDI5PjaEkMw).
+Welcome to OE Edit! This is an experimental text editor that's meant to streamline the writing of Old English texts. For IPA transliteration, external program is needed:
+  http://espeak.sourceforge.net/
 
 Shortcuts
   Ctrl+C          Copy selected text
@@ -36,6 +43,7 @@ Latinized rendition character conversion rules
   ää->ǣ th->þ  ä->æ yy->ȳ ee->ē oo->ō cc->ċ aa->ā
   ii->ī uu->ū gG->g  g->ġ  w->ƿ tH->ð gh->ȝ Ää->Ǣ
   Th->Þ  Ä->Æ Yy->Ȳ Ee->Ē Oo->Ō Cc->Ċ Aa->Ā Ii->Ī
+  Uu->Ū GG->G  G->Ġ  W->Ƿ TH->Ð Gh->Ȝ
 
 Runic rendition character conversion rules
   eɪ.ɪŋ->ᛖᛁᛝ  eɪɪŋ->ᛖᛁᛝ  eɪ.ɝ->ᛖᛁᚱ   eɪɚ->ᛖᛁᚱ
@@ -48,17 +56,19 @@ Runic rendition character conversion rules
      ɛr->ᚫᚱ     æŋ->ᚫᛝ      f->ᚠ       v->ᚠ
       u->ᚢ       ʊ->ᚢ       ɵ->ᚢ       θ->ᚦ
       ð->ᚦ      ɹ̩->ᛖᚱ      ɹ->ᚱ       r->ᚱ
-      j->ᛡ       g->ᚸ       ɡ->ᚸ       w->ᚻᚹ
+      j->ᛡ       g->ᚸ       ɡ->ᚸ       w->ᚹ
       h->ᚻ       n->ᚾ       ɪ->ᛁ       x->ᛇ
       p->ᛈ       s->ᛋ       z->ᛋ       t->ᛏ
       b->ᛒ       ɛ->ᛖ       e->ᛖ       m->ᛗ
       l->ᛚ       ŋ->ᛝ       d->ᛞ       ʌ->ᛟ
       ɒ->ᚪ       ɑ->ᚪ       ə->ᚪ       ɐ->ᚪ
+      o->ᚩ       æ->ᚫ       a->ᚫ       i->ᛠ
+      y->ᚣ       k->ᛣ       ʒ->ᚳᚷ      ʍ->ᚻᚹ
       ʃ->ᛋᚳ      ɝ->ᛖᚱ      ɜ->ᛖᚱ     ɔː->ᚪ
       ɔ->ᚪᚢ      ɚ->ᚪᚱ      ɾ->ᛏ
 
 Recognized markup
-  One can use the notation $r<a:b> to change the output based on whether runic (a) or latinized (b) output is being generated.
+  One can use the notation $r<a:b> to change the output based on whether runic (a) or latinized (b) output is being generated.  
 
   The notation *expression* is on gdoc-copy turned to red and the asterisks are removed.
 ```

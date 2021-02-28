@@ -2,21 +2,14 @@ import os
 import pickle
 import re
 import subprocess
-import tkinter as tk
+from collections import deque
 from itertools import chain, zip_longest
 
-if __package__ is None or __package__ == '':
-    import HtmlClipboard
-    from subs import *
-    from wordbook import *
-else:
-    from . import HtmlClipboard
-    from .subs import *
-    from .wordbook import *
-
-from collections import deque
-
 import PySimpleGUI as sg
+
+from oe_edit.HtmlClipboard import PutHtml
+from oe_edit.subs import *
+from oe_edit.wordbook import *
 
 
 def data_path(*args):
@@ -35,6 +28,7 @@ except BaseException:
 def save_ses():
     with open(data_path('user_data'), 'wb') as f:
         pickle.dump((ses, espeak, geom, state), f)
+    print('Session saved')
 
 # [1] ? ᛬ : [4] ? ᛫ : [2] ? '' : [0]
 ppunct = re.compile(
@@ -67,7 +61,8 @@ wsubrv = max(map(len, sub_r.d.values()))
 lf = '\n'
 subRcols = 50 // (wsubRk + wsubRv + 3)
 subrcols = 50 // (wsubrk + wsubrv + 3)
-print(f"""Welcome to OE Edit! This is an experimental text editor that's meant to streamline the writing of Old English texts.
+print(f"""Welcome to OE Edit! This is an experimental text editor that's meant to streamline the writing of Old English texts. For IPA transliteration, external program is needed:
+  http://espeak.sourceforge.net/
 
 Shortcuts
   Ctrl+C          Copy selected text
@@ -221,7 +216,7 @@ while True:
         elif event is KEY_GDOC_COPY:
             try:
                 # Get selected text
-                text = str(win['-OUT-'].Widget.get(tk.SEL_FIRST, tk.SEL_LAST))
+                text = str(win['-OUT-'].Widget.get('sel.first', 'sel.last'))
 
                 # Apply bold effect
                 boldfmt = r'<span style="color:red;">\1</span>'
@@ -238,7 +233,7 @@ while True:
                 # Escape non-ASCII characters
                 text = text.encode('ascii', 'xmlcharrefreplace').decode('ascii')
 
-                HtmlClipboard.PutHtml(f'{text}')
+                PutHtml(f'{text}')
             except Exception as e:
                 print(f'Failed to doc-copy: {e}')
             continue
