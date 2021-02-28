@@ -1,12 +1,13 @@
 ﻿# OE Edit
 
 ![Screenshot](img/demo.png)
-Demo text from [here](https://anglish.miraheze.org/wiki/Younger_Futhorc).
+([Text source](https://anglish.miraheze.org/wiki/Younger_Futhorc))
 
 Wordbook fetched at runtime from [here](https://docs.google.com/spreadsheets/d/1y8_11RDvuCRyUK_MXj5K7ZjccgCUDapsPDI5PjaEkMw).
 
 Install from command-line: `python -m pip install git+https://github.com/kovadarra/oe-edit.git`
-Run from command-line: `python -m oe_edit` (notice underscore)
+
+Run from command-line: `python -m oe_edit`
 
 Console output when running the thing:
 ```
