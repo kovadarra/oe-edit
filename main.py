@@ -8,9 +8,11 @@ from itertools import chain, zip_longest
 if __package__ is None or __package__ == '':
     import HtmlClipboard
     from subs import *
+    from wordbook import *
 else:
     from . import HtmlClipboard
     from .subs import *
+    from .wordbook import *
 
 from collections import deque
 
@@ -20,6 +22,7 @@ import PySimpleGUI as sg
 def data_path(*args):
     return os.path.join(os.getenv('APPDATA'), 'OE Edit', *args)
 
+wb = get_wordbook(data_path('wordbook.csv'))
 
 if not os.path.isdir(data_path()):
     os.mkdir(data_path())
@@ -32,7 +35,6 @@ except BaseException:
 def save_ses():
     with open(data_path('user_data'), 'wb') as f:
         pickle.dump((ses, espeak, geom, state), f)
-    print('Saved session')
 
 # [1] ? ᛬ : [4] ? ᛫ : [2] ? '' : [0]
 ppunct = re.compile(
@@ -91,6 +93,7 @@ Shortcuts
 
   Ctrl+Shift+C    Make a Google doc-friendly copy
   Ctrl+Shift+T    Transcribe to runic script
+  Ctrl+Space      Apply suggested wordbook entry
 
 Latinized rendition character conversion rules
 {lf.join(f'  {" ".join(f"{k:>{wsubRk}}->{v:<{wsubRv}}" for k,v in xs if k)}' for xs in grouper(filter(lambda x:x[0] and x[1],sub_R.d.items()),subRcols,("","")))}
@@ -107,7 +110,10 @@ filehash = hash(tuple(ses))
 
 sg.theme('DarkAmber')
 sg.theme_background_color('#151515')
-layout = [[sg.Multiline(ses[0], font='Consolas', enable_events=True, key='-IN-', background_color='#333', border_width=0),
+sg.theme_element_background_color('#151515')
+sg.theme_text_element_background_color('#151515')
+layout = [[sg.T('...', key='-TIP-', size=(120, 1))],
+          [sg.Multiline(ses[0], font='Consolas', enable_events=True, key='-IN-', background_color='#333', border_width=0),
            sg.Multiline(sub_R(prune.sub(r'\2', ses[0])), disabled=True, font='Consolas', key='-OUT-', background_color='#151515', border_width=0)]]
 win = sg.Window(
     'OE Edit',
@@ -126,6 +132,7 @@ KEY_NEXT_FILE = {}
 KEY_PREV_FILE = {}
 KEY_GDOC_COPY = {}
 KEY_TRANSLIT = {}
+KEY_AUTOCOMPLETE = {}
 win.bind('<Control-Shift-Tab>', KEY_PREV_FILE)
 win.bind('<Control-Prior>', KEY_PREV_FILE)
 win.bind('<Control-Tab>', KEY_NEXT_FILE)
@@ -133,6 +140,7 @@ win.bind('<Control-Next>', KEY_NEXT_FILE)
 win.bind('<Control-n>', KEY_NEW_FILE)
 win.bind('<Control-F4>', KEY_DEL_FILE)
 win.bind('<Control-z>', KEY_UNDO)
+win.bind('<Control-space>', KEY_AUTOCOMPLETE)
 win.bind('<Control-Shift-C>', KEY_GDOC_COPY)
 win.bind('<Control-Shift-T>', KEY_TRANSLIT)
 
@@ -151,17 +159,55 @@ if geom:
 win.TKroot.bind('<Configure>', set_geom)
 
 history = deque()
+suggesting = None
+inw = win['-IN-'].Widget
+tipw = win['-TIP-'].Widget
+
+def read_wb():
+    if w := inw.get('insert -1c wordstart',
+                    'insert -1c wordend').strip().lower():
+        if (wi := wb.bisect_left(w)) < len(wb):
+            n = len(w)
+            k, v = wb.peekitem(wi)
+            if k[:n] == w:
+                return v
+
+def update_wb():
+    global suggesting
+    if v := read_wb():
+        if v != suggesting:
+            win['-TIP-'](f'{v.word}: {v.meaning.strip()}')
+            suggesting = v
+    elif suggesting:
+        suggesting = None
+        win['-TIP-']('...')
+
+def update_text():
+    text = inw.get('1.0', 'end')[:-1]
+    if history and text == ses[0]:
+        return
+    if len(history) > 15:
+        history.pop()
+    history.append((ses[0], inw.index('insert')))
+    ses[0] = text
+    win['-OUT-'](sub_R(prune.sub(r'\2', text)))
+
+save = 600
 while True:
-    event, values = win.read(60_000)
+    event, values = win.read(100)
     if event == sg.TIMEOUT_KEY:
-        if (curhash := hash(tuple(ses))) != filehash:
-            save_ses()
-            filehash = curhash
+        update_wb()
+        if not (save := save - 1):
+            save = 600
+            if (curhash := hash(tuple(ses))) != filehash:
+                save_ses()
+                filehash = curhash
     elif event in (sg.WIN_CLOSED, 'Cancel'):
         save_ses()
         break
     elif event == {}:
         if event is KEY_NEW_FILE:
+            history.clear()
             ses.rotate(-1)
             ses.appendleft('')
         elif event is KEY_DEL_FILE:
@@ -210,7 +256,7 @@ while True:
             ses[0], idx = history.pop()
             win['-IN-'](ses[0])
             win['-OUT-'](sub_R(prune.sub(r'\2', ses[0])))
-            win['-IN-'].Widget.mark_set(tk.INSERT, idx)
+            win['-IN-'].Widget.mark_set('insert', idx)
             continue
         elif event is KEY_PREV_FILE:
             history.clear()
@@ -218,18 +264,21 @@ while True:
         elif event is KEY_NEXT_FILE:
             history.clear()
             ses.rotate(-1)
+        elif event is KEY_AUTOCOMPLETE:
+            if suggesting:
+                start, end = inw.index(
+                    'insert -1c wordstart'), inw.index('insert -1c wordend')
+                inw.delete(start, end)
+                inw.insert(start, suggesting.word)
+                update_text()
+                continue
         else:
             continue
         win['-IN-'](ses[0])
         win['-OUT-'](sub_R(prune.sub(r'\2', ses[0])))
-        win['-IN-'].Widget.mark_set(tk.INSERT, '1.0')
-    elif ses[0] != values['-IN-'][:-1]:
-        # remove LF that is added to multilines in event reportings
-        if len(history) > 15:
-            history.pop()
-        history.append((ses[0], win['-IN-'].Widget.index(tk.INSERT)))
-        ses[0] = values['-IN-'][:-1]
-        win['-OUT-'](sub_R(prune.sub(r'\2', ses[0])))
+        win['-IN-'].Widget.mark_set('insert', '1.0')
+    else:
+        update_text()
 
 
 win.close()
