@@ -158,9 +158,23 @@ suggesting = None
 inw = win['-IN-'].Widget
 tipw = win['-TIP-'].Widget
 
+pword = re.compile(r"[\w'\-]+")
+def get_cur_word():
+    if ws := pword.findall(inw.get('insert -1c wordstart', 'insert wordend')):
+        return ws[-1]
+    return ''
+
+def get_cur_word_bounds():
+    ins = inw.get('insert -1c wordstart', 'insert wordend')
+    if ws := list(map(re.Match.span, pword.finditer(ins))):
+        idx = inw.index('insert wordend')
+        ln, col = idx.split('.')
+        n = len(ins)
+        a, b = ws[-1]
+        return f'{ln}.{int(col)-n+a}', f'{ln}.{int(col)-n+b}'
+
 def read_wb():
-    if w := inw.get('insert -1c wordstart',
-                    'insert -1c wordend').strip().lower():
+    if w := get_cur_word().lower():
         if (wi := wb.bisect_left(w)) < len(wb):
             n = len(w)
             k, v = wb.peekitem(wi)
@@ -261,10 +275,9 @@ while True:
             ses.rotate(-1)
         elif event is KEY_AUTOCOMPLETE:
             if suggesting:
-                start, end = inw.index(
-                    'insert -1c wordstart'), inw.index('insert -1c wordend')
+                start, end = get_cur_word_bounds()
                 inw.delete(start, end)
-                inw.insert(start, suggesting.word)
+                inw.insert('insert', suggesting.word)
                 update_text()
                 continue
         else:
