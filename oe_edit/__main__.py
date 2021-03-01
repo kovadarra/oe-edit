@@ -107,7 +107,7 @@ sg.theme('DarkAmber')
 sg.theme_background_color('#151515')
 sg.theme_element_background_color('#151515')
 sg.theme_text_element_background_color('#151515')
-layout = [[sg.T('...', key='-TIP-', size=(120, 1))],
+layout = [[sg.T('<wordbook entries appear here>', key='-TIP-', size=(120, 1))],
           [sg.Multiline(ses[0], font='Consolas', enable_events=True, key='-IN-', background_color='#222', border_width=0),
            sg.Multiline(sub_R(prune.sub(r'\2', ses[0])), disabled=True, font='Consolas', key='-OUT-', background_color='#151515', border_width=0)]]
 win = sg.Window(
@@ -201,14 +201,14 @@ def update_wb():
     global suggesting, hlight
     if v := read_wb():
         if v != suggesting:
-            win['-TIP-'](f'{v.word}: {v.meaning.strip()}')
+            win['-TIP-'](f'{v.word} ({v.kind}): {v.meaning}')
             suggesting = v
             highlight()
             hlight = 3
     elif suggesting:
         suggesting = None
         inw.tag_remove('suggest', '1.0', 'end')
-        win['-TIP-']('...')
+        win['-TIP-']('')
 
 def update_text():
     text = inw.get('1.0', 'end')[:-1]

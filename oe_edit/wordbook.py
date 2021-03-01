@@ -16,9 +16,13 @@ class csv_kind(enum.Enum):
     INTERJECTION = 'INT',
     AFFIX = 'AFF'
 
+pkind = re.compile('|'.join(f'\\b{x.value[0]}\\b' for x in csv_kind))
+
 class csv_entry:
     def __init__(self, data):
         self.word, self.meaning, self.kind, self.forebear, self.whence, self.notes = data[:6]
+        self.meaning = '; '.join(filter(None, map(str.strip,self.meaning.split('᛫'))))
+        self.kind = '|'.join(pkind.findall(self.kind))
     word: str
     meaning: str
     kind: csv_kind
