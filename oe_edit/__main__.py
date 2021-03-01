@@ -1,3 +1,4 @@
+import ctypes
 import os
 import pickle
 import re
@@ -6,14 +7,20 @@ from collections import deque
 from itertools import chain, zip_longest
 
 import PySimpleGUI as sg
+from pkg_resources import resource_filename
 
-from oe_edit.HtmlClipboard import PutHtml
 from oe_edit.subs import *
 from oe_edit.wordbook import *
 
 
 def data_path(*args):
     return os.path.join(os.getenv('APPDATA'), 'OE Edit', *args)
+
+# Set icon
+# https://stackoverflow.com/a/34547834
+myappid = 'mycompany.myproduct.subproduct.version'
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+sg.set_global_icon(resource_filename('oe_edit.resources', 'icon.ico'))
 
 wb = get_wordbook(data_path('wordbook.csv'))
 
@@ -195,7 +202,7 @@ def highlight():
         ln, col = idx.split('.')
         last = f'{idx}+{len(w)}c'
         def ok(x): return not x.isalpha()
-        if col=='0' or ok(inw.get(f'{ln}.{int(col)-1}')):
+        if col == '0' or ok(inw.get(f'{ln}.{int(col)-1}')):
             if ok(inw.get(last)):
                 inw.tag_add('suggest', idx, last)
         idx = last
@@ -206,7 +213,7 @@ def update_wb():
     global suggesting, hlight
     if v := read_wb():
         if v != suggesting:
-            win['-TIP-'](f'{v.word} ({v.kind}): {v.meaning}')
+            win['-TIP-'](f'{v.word}{f" ({v.kind})" if v.kind else ""}: {v.meaning}')
             suggesting = v
             highlight()
             hlight = 3
@@ -275,6 +282,7 @@ while True:
                 # Escape non-ASCII characters
                 text = text.encode('ascii', 'xmlcharrefreplace').decode('ascii')
 
+                from oe_edit.HtmlClipboard import PutHtml
                 PutHtml(f'{text}')
             except Exception as e:
                 print(f'Failed to doc-copy: {e}')

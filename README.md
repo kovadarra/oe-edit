@@ -3,9 +3,17 @@
 ![Screenshot](img/demo.png)
 ([Text source](https://anglish.miraheze.org/wiki/Younger_Futhorc))
 
-Wordbook fetched at runtime from [here](https://docs.google.com/spreadsheets/d/1y8_11RDvuCRyUK_MXj5K7ZjccgCUDapsPDI5PjaEkMw).
+Old English / Anglish text editor
+
+* Realtime wordbook query
+* Minimalist look
+* Latinized/runic output
+
+Wordbook fetched [hence](https://docs.google.com/spreadsheets/d/1y8_11RDvuCRyUK_MXj5K7ZjccgCUDapsPDI5PjaEkMw) at runtime.
 
 Install from command-line: `python -m pip install git+https://github.com/kovadarra/oe-edit.git`
+
+**Note**: `pywin32` may not install properly, in which situation it can be downloaded [hence](https://github.com/mhammond/pywin32/releases).
 
 Run from command-line: `python -m oe_edit`
 
