@@ -1,19 +1,19 @@
-﻿# OE Edit
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kovadarra/oe-edit/master/img/icon.png" alt="OE Edit">
+  <h2 align="center">Old English / Anglish text editor</h2>
+</p>
 
 ![Screenshot](img/demo.png)
+
 ([Text source](https://anglish.miraheze.org/wiki/Younger_Futhorc))
 
-Old English / Anglish text editor
-
-* Realtime wordbook query
+* Realtime wordbook query<br>(Fetched [hence](https://docs.google.com/spreadsheets/d/1y8_11RDvuCRyUK_MXj5K7ZjccgCUDapsPDI5PjaEkMw) at runtime.)
 * Minimalist look
-* Latinized/runic output
+* Latinized/runic output<br>(Runes require [espeak](http://espeak.sourceforge.net/).)
 
-Wordbook fetched [hence](https://docs.google.com/spreadsheets/d/1y8_11RDvuCRyUK_MXj5K7ZjccgCUDapsPDI5PjaEkMw) at runtime.
 
-Install from command-line: `python -m pip install git+https://github.com/kovadarra/oe-edit.git`
 
-**Note**: `pywin32` may not install properly, in which situation it can be downloaded [hence](https://github.com/mhammond/pywin32/releases).
+Install from command-line: `python -m pip install git+https://github.com/kovadarra/oe-edit.git`<br>**Note**: `pywin32` may not install properly, in which situation it can be downloaded [hence](https://github.com/mhammond/pywin32/releases).
 
 Run from command-line: `python -m oe_edit`
 
