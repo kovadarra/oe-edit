@@ -167,9 +167,11 @@ def get_cur_word():
 def get_cur_word_bounds():
     ins = inw.get('insert -1c wordstart', 'insert wordend')
     if ws := list(map(re.Match.span, pword.finditer(ins))):
-        idx = inw.index('insert wordend')
+        if ins[-1] == '\n':
+            idx, n = inw.index('insert -1c wordend'), len(ins) - 1
+        else:
+            idx, n = inw.index('insert wordend'), len(ins)
         ln, col = idx.split('.')
-        n = len(ins)
         a, b = ws[-1]
         return f'{ln}.{int(col)-n+a}', f'{ln}.{int(col)-n+b}'
 
