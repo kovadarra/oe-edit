@@ -108,7 +108,7 @@ sg.theme_background_color('#151515')
 sg.theme_element_background_color('#151515')
 sg.theme_text_element_background_color('#151515')
 layout = [[sg.T('...', key='-TIP-', size=(120, 1))],
-          [sg.Multiline(ses[0], font='Consolas', enable_events=True, key='-IN-', background_color='#333', border_width=0),
+          [sg.Multiline(ses[0], font='Consolas', enable_events=True, key='-IN-', background_color='#222', border_width=0),
            sg.Multiline(sub_R(prune.sub(r'\2', ses[0])), disabled=True, font='Consolas', key='-OUT-', background_color='#151515', border_width=0)]]
 win = sg.Window(
     'OE Edit',
@@ -157,6 +157,8 @@ history = deque()
 suggesting = None
 inw = win['-IN-'].Widget
 tipw = win['-TIP-'].Widget
+inw.config(insertbackground='white')
+inw.config(selectbackground='#474747')
 
 pword = re.compile(r"[\w'\-]+")
 def get_cur_word():
@@ -183,14 +185,29 @@ def read_wb():
             if k[:n] == w:
                 return v
 
+def highlight():
+    inw.tag_remove('suggest', '1.0', 'end')
+    first = '1.0'
+    w = suggesting.word
+    while first := inw.search(
+            w, first, nocase=True, stopindex='end'):
+        last = f'{first}+{len(w)}c'
+        inw.tag_add('suggest', first, last)
+        first = last
+    inw.tag_config('suggest', background='#474747')
+
+hlight = 3
 def update_wb():
-    global suggesting
+    global suggesting, hlight
     if v := read_wb():
         if v != suggesting:
             win['-TIP-'](f'{v.word}: {v.meaning.strip()}')
             suggesting = v
+            highlight()
+            hlight = 3
     elif suggesting:
         suggesting = None
+        inw.tag_remove('suggest', '1.0', 'end')
         win['-TIP-']('...')
 
 def update_text():
@@ -203,13 +220,17 @@ def update_text():
     ses[0] = text
     win['-OUT-'](sub_R(prune.sub(r'\2', text)))
 
-save = 600
+save = 400
 while True:
-    event, values = win.read(100)
+    event, values = win.read(150)
     if event == sg.TIMEOUT_KEY:
         update_wb()
+        if not (hlight := hlight - 1):
+            hlight = 5
+            if suggesting:
+                highlight()
         if not (save := save - 1):
-            save = 600
+            save = 400
             if (curhash := hash(tuple(ses))) != filehash:
                 save_ses()
                 filehash = curhash
@@ -279,7 +300,8 @@ while True:
             if suggesting:
                 start, end = get_cur_word_bounds()
                 inw.delete(start, end)
-                inw.insert('insert', suggesting.word)
+                inw.insert(start, suggesting.word)
+                inw.tag_add('suggest', start, 'insert')
                 update_text()
                 continue
         else:
