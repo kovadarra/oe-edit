@@ -84,7 +84,8 @@ Shortcuts
   Ctrl+PgDn
   Ctrl+Shift+Tab, Previous file
   Ctrl+PgUp
-  Ctrl+F4         Delete file
+  Ctrl+W,         Delete file
+  Ctrl+F4
 
   Ctrl+Shift+C    Make a Google doc-friendly copy
   Ctrl+Shift+T    Transcribe to runic script
@@ -133,6 +134,7 @@ win.bind('<Control-Prior>', KEY_PREV_FILE)
 win.bind('<Control-Tab>', KEY_NEXT_FILE)
 win.bind('<Control-Next>', KEY_NEXT_FILE)
 win.bind('<Control-n>', KEY_NEW_FILE)
+win.bind('<Control-w>', KEY_DEL_FILE)
 win.bind('<Control-F4>', KEY_DEL_FILE)
 win.bind('<Control-z>', KEY_UNDO)
 win.bind('<Control-space>', KEY_AUTOCOMPLETE)
@@ -187,13 +189,16 @@ def read_wb():
 
 def highlight():
     inw.tag_remove('suggest', '1.0', 'end')
-    first = '1.0'
+    idx = '1.0'
     w = suggesting.word
-    while first := inw.search(
-            w, first, nocase=True, stopindex='end'):
-        last = f'{first}+{len(w)}c'
-        inw.tag_add('suggest', first, last)
-        first = last
+    while idx := inw.search(w, idx, 'end', nocase=True):
+        ln, col = idx.split('.')
+        last = f'{idx}+{len(w)}c'
+        def ok(x): return not x.isalpha()
+        if col=='0' or ok(inw.get(f'{ln}.{int(col)-1}')):
+            if ok(inw.get(last)):
+                inw.tag_add('suggest', idx, last)
+        idx = last
     inw.tag_config('suggest', background='#474747')
 
 hlight = 3

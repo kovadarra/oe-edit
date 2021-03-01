@@ -9,7 +9,6 @@ Install from command-line: `python -m pip install git+https://github.com/kovadar
 
 Run from command-line: `python -m oe_edit`
 
-Console output when running the thing:
 ```
 Welcome to OE Edit! This is an experimental text editor that's meant to streamline the writing of Old English texts. For IPA transliteration, external program is needed:
   http://espeak.sourceforge.net/
@@ -34,7 +33,8 @@ Shortcuts
   Ctrl+PgDn
   Ctrl+Shift+Tab, Previous file
   Ctrl+PgUp
-  Ctrl+F4         Delete file
+  Ctrl+W,         Delete file
+  Ctrl+F4
 
   Ctrl+Shift+C    Make a Google doc-friendly copy
   Ctrl+Shift+T    Transcribe to runic script
@@ -69,7 +69,7 @@ Runic rendition character conversion rules
       ɔ->ᚪᚢ      ɚ->ᚪᚱ      ɾ->ᛏ
 
 Recognized markup
-  One can use the notation $r<a:b> to change the output based on whether runic (a) or latinized (b) output is being generated.  
+  One can use the notation $r<a:b> to change the output based on whether runic (a) or latinized (b) output is being generated.
 
   The notation *expression* is on gdoc-copy turned to red and the asterisks are removed.
 ```
