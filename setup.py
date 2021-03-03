@@ -12,5 +12,5 @@ setuptools.setup(
         'sortedcontainers>=2.3.0',
         'pywin32>=223'],
     python_requires='>=3.9',
-    package_data={'': ['icon.ico']}
+    package_data={'': ['icon.ico', 'wordbook.bin']}
 )
