@@ -22,14 +22,9 @@ class csv_kind(enum.Enum):
 
 pkind = re.compile('|'.join(f'\\b{x.value[0]}\\b' for x in csv_kind))
 
-class csv_entry:
+class wordbook_entry:
     def __init__(self, data):
-        self.word, self.meaning, self.kind = data[:3]
-        self.meaning = '; '.join(
-            filter(
-                None, map(
-                    str.strip, self.meaning.split('᛫'))))
-        self.kind = '|'.join(pkind.findall(self.kind))
+        self.word, self.meaning, self.kind = data
     word: str
     meaning: str
     kind: csv_kind
@@ -38,7 +33,7 @@ pword = re.compile(
     r"($|\.|;)\s*(\ba |\ban |\bthe |\bto )?\s*(\w[\w ']*)",
     flags=re.IGNORECASE)
 
-def get_wordbook(path: str) -> SortedDict[str, csv_entry]:
+def get_wordbook(path: str) -> SortedDict[str, wordbook_entry]:
     if not os.path.isfile(path):
         import requests
         response = requests.get(
@@ -50,6 +45,18 @@ def get_wordbook(path: str) -> SortedDict[str, csv_entry]:
         with open(path, newline='', encoding='U8') as fcsv:
             reader = iter(csv.reader(fcsv))
             next(reader)
-            gen = map(csv_entry, chain(zip(*([iter(pickle.load(fbase))] * 3)), reader))
-            return SortedDict(chain.from_iterable([*((x.lower(), e) for x in (
-                m[3] for m in pword.finditer(e.meaning)) if x), (e.word.lower(), e)] for e in gen))
+
+            kfa = pkind.findall
+            def csv_entry(data):
+                return wordbook_entry([data[0], '; '.join(filter(
+                    None, map(str.strip, data[1].split('᛫')))), '|'.join(kfa(data[2]))])
+
+            # l = list of entries
+            l = [*map(wordbook_entry, zip(*([iter(pickle.load(fbase))] * 3))),
+                 *map(csv_entry, reader)]
+
+            # data = base derivative, wb derivative, base exact, wb exact
+            sl = str.lower
+            wfa = pword.findall
+            return SortedDict(chain(chain.from_iterable(
+                [[(sl(m[2]), e) for m in wfa(e.meaning)] for e in l]), [(sl(e.word), e) for e in l]))
