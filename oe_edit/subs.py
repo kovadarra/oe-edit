@@ -1,4 +1,6 @@
 import re
+from itertools import zip_longest
+
 
 def build_sub(d: dict, upper=False):
     def escape(x: str):
@@ -24,14 +26,14 @@ def build_sub(d: dict, upper=False):
 sub_R = build_sub({'ää': 'ǣ', 'th': 'þ', 'ä': 'æ', 'yy': 'ȳ', 'ee': 'ē', 'oo': 'ō', 'cc': 'ċ',
                    'aa': 'ā', 'ii': 'ī', 'uu': 'ū', 'gG': 'g', 'g': 'ġ', 'w': 'ƿ', 'tH': 'ð', 'gh': 'ȝ'}, upper=True)
 sub_r = build_sub({'eɪ.ɪŋ': 'ᛖᛁᛝ',
-                         'eɪɪŋ': 'ᛖᛁᛝ',
-                         'eɪ.ɝ': 'ᛖᛁᚱ',
-                         'eɪɚ': 'ᛖᛁᚱ',
-                         'eɪr': 'ᛖᛁᚱ',
-                         'eɪɹ': 'ᛖᛁᚱ',
-                         'eɪŋ': 'ᚫᛝ',
-                         'i.ɝ': 'ᛠᚱ',
-                         'ɪɹ': 'ᛠᚱ',
+                   'eɪɪŋ': 'ᛖᛁᛝ',
+                   'eɪ.ɝ': 'ᛖᛁᚱ',
+                   'eɪɚ': 'ᛖᛁᚱ',
+                   'eɪr': 'ᛖᛁᚱ',
+                   'eɪɹ': 'ᛖᛁᚱ',
+                   'eɪŋ': 'ᚫᛝ',
+                   'i.ɝ': 'ᛠᚱ',
+                   'ɪɹ': 'ᛠᚱ',
                          'ɪr': 'ᛠᚱ',
                          'oʊ': 'ᚩ',
                          'əʊ': 'ᚩ',
@@ -117,16 +119,10 @@ sub_prelit = build_sub({"'": '',
                         'tH': 'th',
                         'TH': 'Th'})
 
-# OLD
-# sub_r = build_sub({'ea': 'ᛠ', 'sh': 'ᛲ', 'oo': 'ᛳ', 'eo': 'ᛇ', 'st': 'ᛥ', 'kw': 'ᛢ', 'j': 'ᛄ',
-#                    'th': 'ᚦ', 'tH': 'ᚧ',
-#                    'ng': 'ᛝ',
-#                    'oe': 'ᛟ', 'ae': 'ᚫ',
-#                    'io': 'ᛡ', 'ia': 'ᛡ',
-#                    'kk': 'ᛤ', 'k': 'ᛣ',
-#                    'gG': 'ᚸ', 'g': 'ᚷ',
-#                    'o': 'ᚩ', 'r': 'ᚱ', 'c': 'ᚳ', 'w': 'ᚹ', 'h': 'ᚻ', 'n': 'ᚾ',
-#                    'i': 'ᛁ', 'p': 'ᛈ', 'x': 'ᛉ', 't': 'ᛏ', 'b': 'ᛒ', 'e': 'ᛖ', 'm': 'ᛗ',
-#                    'l': 'ᛚ', 'd': 'ᛞ', 'a': 'ᚪ', 'y': 'ᚣ',
-#                    'f': 'ᚠ', 'u': 'ᚢ', 's': 'ᛋ', 'v': 'ᚠ', 'q': 'ᛢ',
-#                    '.': '᛫', ':': '᛫', '?': '᛫', '!': '᛫', ',': '', ';': '', "'": '', '"': ''}, upper=True)
+
+def table_sub(sub):
+    wk = max(map(len, sub.d.keys()))
+    wv = max(map(len, sub.d.values()))
+    cols = 50 // (wk + wv + 3)
+    return '\n'.join(f'  {" ".join(f"{k:>{wk}}->{v:<{wv}}" for k,v in xs if k)}' for xs in zip_longest(
+        *([iter(filter(lambda x:x[0] and x[1], sub.d.items()))] * cols), fillvalue=("", "")))

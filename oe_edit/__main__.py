@@ -4,7 +4,7 @@ import pickle
 import re
 import subprocess
 from collections import deque
-from itertools import chain, zip_longest
+from itertools import chain
 from time import time_ns
 
 import PySimpleGUI as sg
@@ -58,19 +58,6 @@ def transliterate(x: str, accent: str = 'en-us') -> str:
     return ''.join(chain.from_iterable(zip(lns[:-1], map(
         lambda m: '᛬' if m[1] else '' if m[2] else '\n\n' if m[3] else '᛫' if m[4] else m[0], ppunct.finditer(x))))) + lns[-1]
 
-def grouper(iterable, n, fillvalue=None):
-    "Collect data into fixed-length chunks or blocks"
-    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
-    args = [iter(iterable)] * n
-    return zip_longest(*args, fillvalue=fillvalue)
-
-wsubRk = max(map(len, sub_R.d.keys()))
-wsubRv = max(map(len, sub_R.d.values()))
-wsubrk = max(map(len, sub_r.d.keys()))
-wsubrv = max(map(len, sub_r.d.values()))
-lf = '\n'
-subRcols = 50 // (wsubRk + wsubRv + 3)
-subrcols = 50 // (wsubrk + wsubrv + 3)
 print(f"""Welcome to OE Edit! This is an experimental text editor that's meant to streamline the writing of Old English texts. For IPA transliteration, external program is needed:
   http://espeak.sourceforge.net/
 
@@ -102,10 +89,10 @@ Shortcuts
   Ctrl+Space      Apply suggested wordbook entry
 
 Latinized rendition character conversion rules
-{lf.join(f'  {" ".join(f"{k:>{wsubRk}}->{v:<{wsubRv}}" for k,v in xs if k)}' for xs in grouper(filter(lambda x:x[0] and x[1],sub_R.d.items()),subRcols,("","")))}
+{table_sub(sub_R)}
 
 Runic rendition character conversion rules
-{lf.join(f'  {" ".join(f"{k:>{wsubrk}}->{v:<{wsubrv}}" for k,v in xs if k)}' for xs in grouper(filter(lambda x:x[0] and x[1],sub_r.d.items()),subrcols,("","")))}
+{table_sub(sub_r)}
 
 Recognized markup
   One can use the notation $r<a:b> to change the output based on whether runic (a) or latinized (b) output is being generated.
