@@ -1,11 +1,13 @@
+import csv
+import enum
 import os
 import pickle
-from sortedcontainers import SortedDict
 import re
-import enum
-from pkg_resources import resource_filename
 from itertools import chain
-import csv
+
+from pkg_resources import resource_filename
+from sortedcontainers import SortedDict
+
 
 class csv_kind(enum.Enum):
     NOUN = 'N',
@@ -22,7 +24,7 @@ pkind = re.compile('|'.join(f'\\b{x.value[0]}\\b' for x in csv_kind))
 
 class csv_entry:
     def __init__(self, data):
-        self.word, self.meaning, self.kind, self.forebear, self.whence, self.notes = data[:6]
+        self.word, self.meaning, self.kind = data[:3]
         self.meaning = '; '.join(
             filter(
                 None, map(
@@ -31,11 +33,10 @@ class csv_entry:
     word: str
     meaning: str
     kind: csv_kind
-    forebear: str
-    whence: str
-    notes: str
 
-pword = re.compile(r"(\ba |\ban |\bthe |\bto )?(\w[\w ']*)")
+pword = re.compile(
+    r"($|\.|;)\s*(\ba |\ban |\bthe |\bto )?\s*(\w[\w ']*)",
+    flags=re.IGNORECASE)
 
 def get_wordbook(path: str) -> SortedDict[str, csv_entry]:
     if not os.path.isfile(path):
@@ -49,8 +50,6 @@ def get_wordbook(path: str) -> SortedDict[str, csv_entry]:
         with open(path, newline='', encoding='U8') as fcsv:
             reader = iter(csv.reader(fcsv))
             next(reader)
-            gbase = ((word.lower(), csv_entry((word, meaning, kind, '', '', '')))
-                     for word, meaning, kind in zip(*([iter(pickle.load(fbase))] * 3)))
-            gcsv = chain.from_iterable([(e.word.lower(), e), *((x.lower(), e) for x in (
-                m[2] for m in pword.finditer(e.meaning)) if x)] for e in map(csv_entry, reader))
-            return SortedDict(sorted(chain(gbase, gcsv), key=lambda x: x[0]))
+            gen = map(csv_entry, chain(zip(*([iter(pickle.load(fbase))] * 3)), reader))
+            return SortedDict(chain.from_iterable([*((x.lower(), e) for x in (
+                m[3] for m in pword.finditer(e.meaning)) if x), (e.word.lower(), e)] for e in gen))

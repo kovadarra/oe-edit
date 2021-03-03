@@ -5,12 +5,14 @@ import re
 import subprocess
 from collections import deque
 from itertools import chain, zip_longest
+from time import time_ns
 
 import PySimpleGUI as sg
 from pkg_resources import resource_filename
 
 from oe_edit.subs import *
 from oe_edit.wordbook import *
+
 
 def data_path(*args):
     return os.path.join(os.getenv('APPDATA'), 'OE Edit', *args)
@@ -21,11 +23,9 @@ myappid = 'mycompany.myproduct.subproduct.version'
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 sg.set_global_icon(resource_filename('oe_edit.resources', 'icon.ico'))
 
-from time import time_ns
-
 start = time_ns()
 wb = get_wordbook(data_path('wordbook.csv'))
-print(f'{(time_ns()-start)/1_000}µs')
+print(f'wordbook loaded in {(time_ns()-start)/1_000_000:.0f}ms')
 
 if not os.path.isdir(data_path()):
     os.mkdir(data_path())
