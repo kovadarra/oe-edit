@@ -7,8 +7,10 @@ from collections import deque
 from itertools import chain
 from time import time_ns
 
+import keyboard
 import PySimpleGUI as sg
 from pkg_resources import resource_filename
+from PySimpleGUI.PySimpleGUI import WIN_CLOSED
 
 from oe_edit.subs import *
 from oe_edit.wordbook import *
@@ -24,7 +26,7 @@ ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 sg.set_global_icon(resource_filename('oe_edit.resources', 'icon.ico'))
 
 start = time_ns()
-wb = get_wordbook(data_path('wordbook.csv'))
+wb = wordbook(data_path('wordbook.csv'))
 print(f'wordbook loaded in {(time_ns()-start)/1_000_000:.0f}ms')
 
 if not os.path.isdir(data_path()):
@@ -38,7 +40,6 @@ except BaseException:
 def save_ses():
     with open(data_path('user_data'), 'wb') as f:
         pickle.dump((ses, espeak, geom, state), f)
-    print('Session saved')
 
 # [1] ? ᛬ : [4] ? ᛫ : [2] ? '' : [0]
 ppunct = re.compile(
@@ -105,13 +106,22 @@ sg.theme('DarkAmber')
 sg.theme_background_color('#151515')
 sg.theme_element_background_color('#151515')
 sg.theme_text_element_background_color('#151515')
-layout = [[sg.T('<wordbook entries appear here>', key='-TIP-', size=(120, 1))],
-          [sg.Multiline(ses[0], font='Consolas', enable_events=True, key='-IN-', background_color='#222', border_width=0),
-           sg.Multiline(sub_R(prune.sub(r'\2', ses[0])), disabled=True, font='Consolas', key='-OUT-', background_color='#151515', border_width=0)]]
+sg.theme_input_background_color('#151515')
+layout = [[sg.Multiline(key='-WB-', disabled=True),
+           sg.Multiline(
+    ses[0],
+    font='Consolas',
+    enable_events=True,
+    key='-IN-',
+    background_color='#222',
+    border_width=0),
+    sg.Multiline(sub_R(prune.sub(r'\2', ses[0])), disabled=True, font='Consolas', key='-OUT-', background_color='#151515', border_width=0)]]
+
 win = sg.Window(
     'OE Edit',
     layout,
     finalize=True,
+    element_padding=(0,0),
     margins=(
         0,
         0),
@@ -139,6 +149,7 @@ win.bind('<Control-Shift-C>', KEY_GDOC_COPY)
 win.bind('<Control-Shift-T>', KEY_TRANSLIT)
 
 # Auto-size
+win['-WB-'].expand(True, True, True)
 win['-IN-'].expand(True, True, True)
 win['-OUT-'].expand(True, True, True)
 
@@ -155,7 +166,7 @@ win.TKroot.bind('<Configure>', set_geom)
 history = deque()
 suggesting = None
 inw = win['-IN-'].Widget
-tipw = win['-TIP-'].Widget
+wbel = win['-WB-']
 inw.config(insertbackground='white')
 inw.config(selectbackground='#474747')
 
@@ -176,18 +187,10 @@ def get_cur_word_bounds():
         a, b = ws[-1]
         return f'{ln}.{int(col)-n+a}', f'{ln}.{int(col)-n+b}'
 
-def read_wb():
-    if w := get_cur_word().lower():
-        if (wi := wb.bisect_left(w)) < len(wb):
-            n = len(w)
-            k, v = wb.peekitem(wi)
-            if k[:n] == w:
-                return v
-
 def highlight():
     inw.tag_remove('suggest', '1.0', 'end')
     idx = '1.0'
-    w = suggesting.word
+    w = wb.current_word
     while idx := inw.search(w, idx, 'end', nocase=True):
         ln, col = idx.split('.')
         last = f'{idx}+{len(w)}c'
@@ -197,20 +200,42 @@ def highlight():
                 inw.tag_add('suggest', idx, last)
         idx = last
     inw.tag_config('suggest', background='#474747')
-
 hlight = 3
 def update_wb():
     global suggesting, hlight
-    if v := read_wb():
-        if v != suggesting:
-            win['-TIP-'](f'{v.word}{f" ({v.kind})" if v.kind else ""}: {v.meaning}')
-            suggesting = v
+    w = get_cur_word()
+    if l := wb[w]:
+        if suggesting != w:
+            suggesting = w
+            wbel(disabled=False)
+            wbel.Widget.delete('1.0', 'end')
+            even_idx = True
+            for v in l:
+                bg = '#151515' if even_idx else '#202020'
+                even_idx = not even_idx
+                wbel(
+                    f'{v.word}',
+                    background_color_for_value=bg,
+                    append=True)
+                wbel(
+                    f'{f" ({v.kind})" if v.kind else ""} {v.meaning}\n',
+                    text_color_for_value='#bda468',
+                    background_color_for_value=bg,
+                    append=True)
+            wbel(disabled=True)
             highlight()
             hlight = 3
     elif suggesting:
         suggesting = None
         inw.tag_remove('suggest', '1.0', 'end')
-        win['-TIP-']('')
+        wbel('')
+
+
+def wb_list():
+    if suggesting:
+        pass
+
+keyboard.add_hotkey('ctrl+alt+w', wb_list)
 
 def update_text():
     text = inw.get('1.0', 'end')[:-1]
@@ -224,7 +249,7 @@ def update_text():
 
 save = 400
 while True:
-    event, values = win.read(150)
+    w, event, values = sg.read_all_windows(150)
     if event == sg.TIMEOUT_KEY:
         update_wb()
         if not (hlight := hlight - 1):

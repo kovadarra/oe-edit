@@ -111,7 +111,7 @@ sub_r = build_sub({'eɪ.ɪŋ': 'ᛖᛁᛝ',
                          ' ': '',
                          'ˈ': '',
                          'ː': '',
-                         '̩': '', '͡': '', 'ˌ': ''})  # discarded IPA notation
+                         '̩': '', '͡': '', 'ʔ': '', 'ˌ': ''})  # discarded IPA notation
 sub_prelit = build_sub({"'": '',
                         '"': '',
                         'gG': 'g',
